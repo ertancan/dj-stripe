@@ -31,12 +31,8 @@ class Migration(migrations.Migration):
         ),
 
         # Step 3: Backfill `card.customer` using data from the parent source model.
-        migrations.RunSQL("""
-            UPDATE djstripe_card AS dc
-            SET customer_id = dss.customer_id
-            FROM djstripe_stripesource AS dss
-            WHERE dc.stripesource_ptr_id = dss.id
-        """),
+        migrations.RunSQL("UPDATE djstripe_card AS dc SET customer_id = dss.customer_id FROM djstripe_stripesource AS dss WHERE dc.stripesource_ptr_id = dss.id"),
+        migrations.RunSQL("UPDATE djstripe_card AS dc INNER JOIN djstripe_stripesource AS dss SET dc.customer_id = dss.customer_id WHERE dc.stripesource_ptr_id = dss.id"),
 
         # Step 4: Drop NULL on `card.customer`
         migrations.AlterField(
@@ -57,11 +53,7 @@ class Migration(migrations.Migration):
         # Step 6: Backfill the PaymentMethod model, using data from the Card table
         # The neat thing: We don"t have to worry about handling non-card data because
         # until now, it was not supported in djstripe.
-        migrations.RunSQL("""
-            INSERT INTO djstripe_paymentmethod (id, type)
-                SELECT stripe_id, 'card'
-                FROM djstripe_stripesource
-        """),
+        migrations.RunSQL("INSERT INTO djstripe_paymentmethod (id, type) SELECT stripe_id, 'card' FROM djstripe_stripesource"),
 
         # Step 7: Rename `charge.source` and `customer.default_source` to `_old` prefix
         migrations.RenameField(
@@ -90,18 +82,8 @@ class Migration(migrations.Migration):
 
         # Step 9: Backfill `charge.source` and `customer.default_source`
         # The values are the stripe IDs of the sources.
-        migrations.RunSQL("""
-            UPDATE djstripe_charge AS dch
-            SET source_id = dss.stripe_id
-            FROM djstripe_stripesource AS dss
-            WHERE dch.source_old_id = dss.id
-        """),
-        migrations.RunSQL("""
-            UPDATE djstripe_customer AS dcu
-            SET default_source_id = dss.stripe_id
-            FROM djstripe_stripesource AS dss
-            WHERE dcu.default_source_old_id = dss.id
-        """),
+        migrations.RunSQL("""UPDATE djstripe_charge AS dch INNER JOIN djstripe_stripesource AS dss SET dch.source_id = dss.stripe_id WHERE dch.source_old_id = dss.id"""),
+        migrations.RunSQL("""UPDATE djstripe_customer AS dcu INNER JOIN djstripe_stripesource AS dss SET dcu.default_source_id = dss.stripe_id WHERE dcu.default_source_old_id = dss.id"""),
 
         # Step 10: Drop the `_old` fields.
         migrations.RemoveField(
@@ -192,19 +174,7 @@ class Migration(migrations.Migration):
         ),
 
         # Step 14: Backfill common fields from djstripe_stripesource table
-        migrations.RunSQL("""
-            UPDATE djstripe_card AS dc
-            SET
-               created = dss.created,
-               description = dss.description,
-               livemode = dss.livemode,
-               metadata = dss.metadata,
-               modified = dss.modified,
-               stripe_id = dss.stripe_id,
-               stripe_timestamp = dss.stripe_timestamp
-            FROM djstripe_stripesource AS dss
-            WHERE dc.stripesource_ptr_id = dss.id
-        """),
+        migrations.RunSQL("""UPDATE djstripe_card AS dc INNER JOIN djstripe_stripesource AS dss SET dc.created = dss.created, dc.description = dss.description, dc.livemode = dss.livemode, dc.metadata = dss.metadata, dc.modified = dss.modified, dc.stripe_id = dss.stripe_id, dc.stripe_timestamp = dss.stripe_timestamp WHERE dc.stripesource_ptr_id = dss.id"""),
 
         # Step 15: Rename stripesource_ptr_id to id and turn it into an Auto field
         migrations.RenameField(
