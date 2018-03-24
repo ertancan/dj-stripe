@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             "SET FOREIGN_KEY_CHECKS = 0;"
-        )
+        ),
         migrations.AlterField(
             model_name='account',
             name='id',
