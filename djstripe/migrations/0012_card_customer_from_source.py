@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         ),
 
         # Step 3: Backfill `card.customer` using data from the parent source model.
-        migrations.RunSQL("UPDATE djstripe_card AS dc left join djstripe_stripesource AS dss on dc.stripesource_ptr_id = dss.id SET customer_id = dss.customer_id "),
+        migrations.RunSQL("UPDATE djstripe_card AS dc left join djstripe_stripesource AS dss on dc.stripesource_ptr_id = dss.id SET dc.customer_id = dss.customer_id "),
         migrations.RunSQL("UPDATE djstripe_card AS dc INNER JOIN djstripe_stripesource AS dss SET dc.customer_id = dss.customer_id WHERE dc.stripesource_ptr_id = dss.id"),
 
         # Step 4: Drop NULL on `card.customer`
