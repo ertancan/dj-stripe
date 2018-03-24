@@ -10,6 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            "SET FOREIGN_KEY_CHECKS = 0;"
+        )
         migrations.AlterField(
             model_name='account',
             name='id',
@@ -80,4 +83,7 @@ class Migration(migrations.Migration):
             name='id',
             field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
         ),
+        migrations.RunSQL(
+            "SET FOREIGN_KEY_CHECKS = 1;"
+        )
     ]
